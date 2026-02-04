@@ -1,0 +1,89 @@
+ <html>
+  <head>
+    <style>
+        body {
+            font-family: arial, sans-serif;
+        }
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        td, th {
+            border: 1px solid #000000;
+            text-align: center;
+            padding: 8px;
+        }
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+    <script src="nvme_pcie_performance.js"></script>
+	<script>
+	  function getValuesAndCalculate()
+	  {
+	    var Lanes_to_Calculate = [1,2,4,8,16];
+		var generation = parseInt(document.getElementsByName("generation")[0].value);
+		var skps = document.getElementsByName("SKPs")[0].value;
+		var iosize = parseInt(document.getElementsByName("IOsize")[0].value);
+		var mps = parseInt(document.getElementsByName("MPS")[0].value);
+		var perLaneBWIOPS = calculate(generation,skps,iosize,mps);
+
+
+		var textObject = "<br>"
+		textObject += "<table>"
+        textObject += "<caption>" + "Gen " + generation + ", " + mps + "B MPS, " + skps + ", " + iosize + "B" + "</caption>"
+		textObject += "<tr><th># Lanes</th><th>Read BW (MB/s)</th><th>Read IOPS</th><th>Write BW (MB/s)</th><th>Write IOPS</th></tr>"
+
+	    Lanes_to_Calculate.forEach(function(lanes) {
+		  textObject += "<tr><td>" + lanes + "</td>"
+		  textObject += "<td>" + (perLaneBWIOPS.get("read_mps")*lanes).toFixed(2) + "</td>" +
+		                "<td>" + (perLaneBWIOPS.get("read_iops")*lanes).toFixed(2) + "</td>" +
+		                "<td>" + (perLaneBWIOPS.get("write_mps")*lanes).toFixed(2) + "</td>" +
+					    "<td>" + (perLaneBWIOPS.get("write_iops")*lanes).toFixed(2) + "</td></tr>"
+	    });
+		textObject += "</table>"
+
+		var the_div = document.getElementById("text_area");
+		the_div.innerHTML = textObject + "<br>" +  the_div.innerHTML;
+	  }
+	</script>
+  </head>
+  <body>
+    Use the drop down menus to choose values on which to base calculations.<br>
+    ---------------------------------------------------------------------------------------------------<br>
+    <ol>
+        <li>Generations: PCIe Gen
+        <li>SKP ordered Sets: clock reliability - SNRS is default for AIC.
+        <li>Transfer size in Bytes
+        <li>Max Payload Size: 256 or 512
+    </ol>
+	<button name="calculate" onclick="getValuesAndCalculate()">Calculate</button>
+	<select name="generation">
+	  <option value=1>1</option>
+	  <option value=2>2</option>
+	  <option value=3 selected>3</option>
+	  <option value=4>4</option>
+	</select>
+	<select name="SKPs">
+	  <option value="SNRS" selected>SNRS</option>
+	  <option value="SRIS">SRIS</option>
+	</select>
+	<select name="IOsize">
+	  <option value=512>512</option>
+	  <option value=4096 selected>4096</option>
+      <option value=8192>8192</option>
+	  <option value=65536>65536</option>
+	  <option value=131072>131072</option>
+      <option value=524288>524288</option>
+      <option value=1048576>1048576</option>
+	</select>
+	<select name="MPS">
+	  <option value=256 selected>256</option>
+	  <option value=512>512</option>
+      <option value=1024>1024</option>
+      <option value=2048>2048</option>
+	</select><br>
+	<div id='text_area'></div>
+  </body>
+</html>
